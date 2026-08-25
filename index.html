@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Découvrez votre profil temporel, vos principaux voleurs de temps et recevez un plan d'action personnalisé avec le Diagnostic du Temps HourTime.">
+  <meta property="og:title" content="Diagnostic du Temps — HourTime">
+  <meta property="og:description" content="28 questions pour mieux comprendre, organiser, protéger et mieux vivre votre temps.">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#0E0E0F">
+  <title>Diagnostic du Temps — HourTime</title>
+  <link rel="icon" type="image/svg+xml" href="assets/logo/hourtime-mark.svg">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="ambient ambient-a" aria-hidden="true"></div>
+  <div class="ambient ambient-b" aria-hidden="true"></div>
+  <header class="site-header">
+    <a class="brand" href="#" id="brandHome" aria-label="Retour à l'accueil HourTime">
+      <img src="assets/logo/hourtime-mark.svg" alt="" width="40" height="40">
+      <span><strong>HOURTIME</strong><small>DIAGNOSTIC DU TEMPS</small></span>
+    </a>
+    <button id="resetTop" class="ghost-btn small hidden" type="button">Recommencer</button>
+  </header>
+  <main id="app" class="app-shell">
+    <section id="welcomeView" class="view active">
+      <div class="hero-card">
+        <div class="eyebrow">OUTIL HOURTIME</div>
+        <h1>DIAGNOSTIC <span>DU TEMPS</span></h1>
+        <p class="hero-subtitle">Découvrez comment vous utilisez réellement votre temps.</p>
+        <blockquote>Votre temps ne disparaît pas.<strong>Il se transforme en choix, habitudes, priorités et renoncements.</strong></blockquote>
+        <div class="meta-row"><span>28 questions</span><span>5 minutes</span><span>Résultat instantané</span></div>
+        <div class="mechanism-grid">
+          <article><b>01</b><h3>Comprendre</h3><p>Prendre conscience de la façon dont votre temps est réellement utilisé.</p></article>
+          <article><b>02</b><h3>Organiser</h3><p>Donner une place claire à vos priorités, engagements et projets.</p></article>
+          <article><b>03</b><h3>Protéger</h3><p>Réduire ce qui vole votre attention et envahit vos journées.</p></article>
+          <article><b>04</b><h3>Agir & mieux vivre</h3><p>Passer à l'action sans sacrifier votre énergie, vos proches ou votre équilibre.</p></article>
+        </div>
+        <div id="resumeBox" class="resume-box hidden"><p>Un diagnostic non terminé a été trouvé.</p><div class="button-row"><button id="resumeBtn" class="primary-btn" type="button">Continuer</button><button id="restartFromResume" class="ghost-btn" type="button">Recommencer</button></div></div>
+        <div id="lastResultBox" class="resume-box hidden"><p>Un résultat précédent est disponible sur cet appareil.</p><div class="button-row"><button id="showLastResult" class="primary-btn" type="button">Voir mon dernier résultat</button><button id="newDiagnostic" class="ghost-btn" type="button">Nouveau diagnostic</button></div></div>
+        <button id="startBtn" class="primary-btn hero-cta" type="button">Commencer mon diagnostic</button>
+        <p class="privacy-note">Vos réponses restent dans votre navigateur et ne sont envoyées vers aucun serveur par cette version.</p>
+        <p class="disclaimer">Ce diagnostic est un outil d'auto-évaluation et de réflexion personnelle. Il ne constitue ni un diagnostic médical, ni psychologique.</p>
+      </div>
+    </section>
+    <section id="questionView" class="view">
+      <div class="question-panel">
+        <div class="progress-header"><div><span id="mechanismLabel" class="eyebrow"></span><span id="questionCounter" class="question-counter"></span></div><span id="progressPercent" class="progress-percent">0%</span></div>
+        <div class="progress-track" aria-hidden="true"><div id="progressBar" class="progress-bar"></div></div>
+        <div id="questionCard" class="question-card" aria-live="polite"><h2 id="questionText"></h2><p id="questionHint" class="question-hint"></p><div id="answerArea" class="answer-area"></div><p id="validationMessage" class="validation-message" role="alert"></p></div>
+        <div class="nav-row"><button id="prevBtn" class="ghost-btn" type="button">Précédent</button><button id="nextBtn" class="primary-btn" type="button">Suivant</button></div>
+      </div>
+    </section>
+    <section id="resultsView" class="view"><div id="reportArea" class="report-area"></div><div class="result-actions no-print"><button id="downloadPdfBtn" class="primary-btn" type="button">Télécharger mon rapport PDF</button><button id="printBtn" class="ghost-btn" type="button">Imprimer</button><button id="restartBtn" class="ghost-btn" type="button">Refaire le diagnostic</button><a class="ghost-btn link-btn" href="https://lnk.bio/Hourtime.officiel" target="_blank" rel="noopener">Découvrir HourTime</a></div></section>
+  </main>
+  <footer class="site-footer"><span>HourTime</span><span>Maîtriser son temps, c'est choisir sa vie.</span></footer>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
+  <script src="js/questions.js" defer></script><script src="js/scoring.js" defer></script><script src="js/profiles.js" defer></script><script src="js/report.js" defer></script><script src="js/app.js" defer></script>
+</body>
+</html>
