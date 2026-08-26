@@ -7,7 +7,7 @@ Application web statique grand public du **Diagnostic du Temps HourTime**, compa
 - 28 questions
 - 4 mécanismes : Comprendre, Organiser, Protéger, Agir & mieux vivre
 - indice HourTime /100
-- 5 profils : Le Temps subi, Le Temps dispersé, Le Temps sacrifié, Le Temps contrôlé, Le Temps aligné
+- 5 profils : LE POMPIER DU TEMPS, LE ZAPPEUR DU TEMPS, LE DONNEUR DE TEMPS, LE CONTRÔLEUR DU TEMPS, L’ARCHITECTE DU TEMPS
 - 12 voleurs de temps
 - 3 voleurs principaux détectés automatiquement
 - mécanisme prioritaire + mécanisme associé
@@ -30,6 +30,7 @@ Application web statique grand public du **Diagnostic du Temps HourTime**, compa
 │   ├── questions.js
 │   ├── scoring.js
 │   ├── profiles.js
+│   ├── wheels.js
 │   ├── report.js
 │   └── app.js
 ├── assets/
@@ -74,7 +75,8 @@ https://VOTRE-UTILISATEUR.github.io/diagnostic-du-temps/
 - Questions : `js/questions.js`
 - Pondérations, scores, seuils et voleurs : `js/scoring.js`
 - Profils temporels : `js/profiles.js`
-- Recommandations, rouages, plan 7 jours et PDF : `js/report.js`
+- Rouages HourTime (R01..R24) + sélection automatique : `js/wheels.js`
+- Recommandations, radar, CTA, plan 7 jours et PDF : `js/report.js`
 - Navigation et sauvegarde : `js/app.js`
 - Design : `css/style.css`
 
