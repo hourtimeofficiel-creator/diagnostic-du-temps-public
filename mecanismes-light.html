@@ -28,8 +28,8 @@
       font-weight: 600;
     }
     .mechanisms-light-page a {
-      width: 100%;
-      max-width: 100%;
+      width: auto;
+      max-width: min(100%, 1100px);
       display: block;
       cursor: pointer;
       transition: transform 0.2s ease, opacity 0.2s ease;
@@ -39,12 +39,25 @@
       opacity: 0.95;
     }
     .mechanisms-light-page img {
-      width: 100%;
+      width: auto;
+      max-width: 100%;
       height: auto;
       display: block;
       object-fit: contain;
       background: #0E0E0F;
       border: 1px solid #D4AF37;
+    }
+    @media (min-width: 769px) {
+      .mechanisms-light-page a:not(.back-button) {
+        display: flex;
+        justify-content: center;
+        max-height: calc(100vh - 120px);
+      }
+      .mechanisms-light-page img {
+        max-height: calc(100vh - 120px);
+        max-width: 100%;
+        object-fit: contain;
+      }
     }
     .back-button {
       align-self: flex-start;
