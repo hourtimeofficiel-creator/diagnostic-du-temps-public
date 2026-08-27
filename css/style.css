@@ -87,7 +87,10 @@ blockquote strong{display:block;color:var(--gold2);margin-top:6px}
 .card h3{margin:6px 0 8px}.card p{color:var(--muted);line-height:1.55}.card .big{font-size:1.8rem;color:var(--gold2);font-weight:800}
 .risk-badge{display:inline-flex;border-radius:999px;padding:6px 9px;font-size:.75rem;font-weight:800;margin-top:6px}
 .risk-low{background:rgba(62,142,104,.18);color:#79c99e}.risk-moderate{background:rgba(200,137,56,.18);color:#e0ad65}.risk-high{background:rgba(166,64,64,.18);color:#e18a8a}.risk-critical{background:rgba(139,30,45,.28);color:#f29aa5}
-.plan-day{display:grid;grid-template-columns:80px 1fr auto;gap:14px;align-items:start}
+.plan-day{display:grid;grid-template-columns:minmax(130px,160px) 1fr auto;gap:22px;align-items:start}
+.plan-day>div:first-child{padding-top:2px}
+.plan-day>div:first-child strong{display:block;margin-top:7px;line-height:1.25}
+.plan-day>div:nth-child(2) p{margin-top:0}
 .plan-day input{width:20px;height:20px;accent-color:var(--gold)}
 .result-actions{justify-content:center;margin:24px 0 10px}
 .site-footer{display:flex;justify-content:space-between;gap:16px;padding:26px 0 36px;color:#797772;font-size:.75rem;border-top:1px solid rgba(200,169,107,.1)}
@@ -96,7 +99,7 @@ blockquote strong{display:block;color:var(--gold2);margin-top:6px}
   .mechanism-grid,.thief-grid,.recommendation-grid,.capital-grid,.cta-grid{grid-template-columns:1fr}
   .report-hero{grid-template-columns:1fr}.score-ring{margin:auto}
   .metric-row{grid-template-columns:115px 1fr 44px;font-size:.88rem}
-  .site-footer{flex-direction:column}.plan-day{grid-template-columns:62px 1fr}.plan-day input{grid-column:2}
+  .site-footer{flex-direction:column}.plan-day{grid-template-columns:1fr auto;gap:10px 16px}.plan-day>div:nth-child(2){grid-column:1 / -1}.plan-day input{grid-column:2;grid-row:1}
 }
 @media(max-width:540px){
   .mechanism-grid{grid-template-columns:1fr}.nav-row>*{flex:1}.hero-card{padding:24px 18px}.question-panel{padding:18px}
