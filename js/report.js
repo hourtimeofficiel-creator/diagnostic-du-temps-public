@@ -49,100 +49,142 @@ HOURTIME.renderReport=function(container,answers,result,profile){
 };
 
 HOURTIME.downloadPdf=async function(reportNode){
-  if(!window.jspdf){window.print();return}
-  const payload=HOURTIME._lastPayload;
-  if(!payload){window.print();return}
-
-  const {result,profile,wheels,recommendations,plan}=payload;
-  const profileCopy=HOURTIME.PROFILE_COPY[profile.primary];
-  const secondary=profile.secondary?HOURTIME.PROFILE_COPY[profile.secondary]:null;
-  const {jsPDF}=window.jspdf;
-  const pdf=new jsPDF("p","mm","a4");
-  const pageW=210,pageH=297,margin=15,maxW=pageW-margin*2;
-
-  const addFooter=(n)=>{pdf.setFontSize(9);pdf.setTextColor(140,140,140);pdf.text(`Page ${n} / 7`,pageW/2,pageH-8,{align:"center"});};
-  const title=(txt,y)=>{pdf.setFont("helvetica","bold");pdf.setFontSize(17);pdf.setTextColor(30,30,30);pdf.text(txt,margin,y);return y+8;};
-  const para=(txt,y,size=11)=>{pdf.setFont("helvetica","normal");pdf.setFontSize(size);pdf.setTextColor(50,50,50);const lines=pdf.splitTextToSize(String(txt||""),maxW);pdf.text(lines,margin,y);return y+lines.length*5+2;};
-
-  // Page 1
-  let y=title("DIAGNOSTIC DU TEMPS — HOURTIME",22);
-  y=para(`Indice HourTime : ${Math.round(result.index)}/100`,y+2,12);
-  y=para(`Niveau : ${result.level.label}`,y);
-  y=para(`Profil : ${profileCopy.label}`,y);
-  y=para(HOURTIME.levelCopy(result.level.label),y+2);
-  addFooter(1);
-
-  // Page 2
-  pdf.addPage();
-  y=title("LES 4 MÉCANISMES",22);
-  Object.entries(result.mechanisms).forEach(([k,v])=>{y=para(`${HOURTIME.MECHANISM_LABELS[k]} : ${Math.round(v)}/100`,y,11);});
-
-  let radarData=null;
-  const radarCanvas=document.getElementById("mechanismRadar");
-  if(radarCanvas){radarData=radarCanvas.toDataURL("image/png");}
-  else if(window.html2canvas&&reportNode){
-    const radarNode=reportNode.querySelector(".mechanism-radar-wrap");
-    if(radarNode){
-      const canvas=await html2canvas(radarNode,{scale:2,backgroundColor:null,useCORS:true});
-      radarData=canvas.toDataURL("image/png");
-    }
+  const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||window.matchMedia("(max-width: 800px)").matches;
+  const preview=isMobile?window.open("","_blank"):null;
+  if(preview){
+    preview.document.write("<title>Préparation du rapport HourTime</title><body style='margin:0;background:#0e0e0f;color:#f4efe6;font-family:system-ui;display:grid;place-items:center;min-height:100vh'><p>Préparation de votre rapport PDF…</p></body>");
   }
-  if(radarData){pdf.addImage(radarData,"PNG",35,70,140,90,undefined,"FAST");}
-  y=175;
-  y=para(`Mécanisme prioritaire : ${HOURTIME.MECHANISM_LABELS[result.primaryMechanism]}`,y,11);
-  if(result.secondaryMechanism){y=para(`Mécanisme associé : ${HOURTIME.MECHANISM_LABELS[result.secondaryMechanism]}`,y,11);}
-  addFooter(2);
+  if(!window.jspdf){
+    if(preview)preview.close();
+    window.print();
+    return;
+  }
+  const payload=HOURTIME._lastPayload;
+  if(!payload){
+    if(preview)preview.close();
+    window.print();
+    return;
+  }
 
-  // Page 3
-  pdf.addPage();
-  y=title("VOTRE PROFIL",22);
-  y=para(profileCopy.label,y,12);
-  y=para(profileCopy.description,y);
-  if(secondary){y=para(`Tendance secondaire : ${secondary.label}`,y);}
-  y=para(`Force : ${profileCopy.strength}`,y);
-  y=para(`Risque : ${profileCopy.risk}`,y);
-  y=para(`Levier : ${profileCopy.lever}`,y);
-  y=para("Vos 3 principaux voleurs de temps",y+3,12);
-  result.topThieves.forEach((t,i)=>{y=para(`${i+1}. ${t.label} (${Math.round(t.score)}/100)`,y);});
-  addFooter(3);
+  try{
+    const {result,profile,wheels,recommendations,plan}=payload;
+    const profileCopy=HOURTIME.PROFILE_COPY[profile.primary];
+    const secondary=profile.secondary?HOURTIME.PROFILE_COPY[profile.secondary]:null;
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:"portrait",unit:"mm",format:"a4",compress:true});
+    const W=210,H=297,M=17,C={ink:[28,27,25],gold:[180,140,67],goldLight:[222,197,143],muted:[92,88,82],paper:[250,248,243],soft:[242,236,224],ruby:[125,31,46]};
+    let pageNo=0;
 
-  // Page 4
-  pdf.addPage();
-  y=title("LES ROUAGES HOURTIME À TRAVAILLER",22);
-  wheels.forEach((w,i)=>{
-    y=para(`${i+1}. ${w.id} — ${w.title}`,y,12);
-    y=para(w.reason,y);
-  });
-  addFooter(4);
+    const setColor=c=>pdf.setTextColor(...c);
+    const lines=(text,width,size=10)=>{pdf.setFontSize(size);return pdf.splitTextToSize(String(text||""),width)};
+    const footer=()=>{pdf.setDrawColor(220,211,194);pdf.line(M,H-15,W-M,H-15);pdf.setFont("helvetica","normal");pdf.setFontSize(8);setColor(C.muted);pdf.text("HourTime - Maîtriser son temps, c'est choisir sa vie.",M,H-9);pdf.text(pageNo+" / 7",W-M,H-9,{align:"right"});};
+    const header=(kicker,title,subtitle="")=>{
+      pdf.setFillColor(...C.paper);pdf.rect(0,0,W,H,"F");
+      pdf.setDrawColor(...C.gold);pdf.setLineWidth(.6);pdf.line(M,15,W-M,15);
+      pdf.setFont("helvetica","bold");pdf.setFontSize(9);setColor(C.gold);pdf.text(kicker.toUpperCase(),M,23);
+      pdf.setFont("times","bold");pdf.setFontSize(25);setColor(C.ink);pdf.text(lines(title,W-M*2,25),M,35);
+      let y=title.length>38?53:47;
+      if(subtitle){pdf.setFont("helvetica","normal");pdf.setFontSize(10);setColor(C.muted);pdf.text(lines(subtitle,W-M*2,10),M,y);y+=11;}
+      return y+5;
+    };
+    const newPage=(k,t,s="")=>{if(pageNo>0)pdf.addPage();pageNo+=1;const y=header(k,t,s);footer();return y;};
+    const paragraph=(text,x,y,w,size=10,color=C.muted,style="normal",leading=5)=>{
+      pdf.setFont("helvetica",style);pdf.setFontSize(size);setColor(color);const l=lines(text,w,size);pdf.text(l,x,y);return y+l.length*leading;
+    };
+    const card=(x,y,w,h,label,title,body,options={})=>{
+      pdf.setFillColor(...(options.fill||C.soft));pdf.setDrawColor(222,211,190);pdf.roundedRect(x,y,w,h,3,3,"FD");
+      pdf.setFont("helvetica","bold");pdf.setFontSize(7.5);setColor(options.accent||C.gold);pdf.text(String(label).toUpperCase(),x+5,y+7);
+      pdf.setFont("helvetica","bold");pdf.setFontSize(options.titleSize||12);setColor(C.ink);pdf.text(lines(title,w-10,options.titleSize||12),x+5,y+15);
+      if(body)paragraph(body,x+5,y+(options.bodyY||24),w-10,options.bodySize||9,C.muted,"normal",options.leading||4.2);
+    };
+    const bar=(label,value,y)=>{
+      pdf.setFont("helvetica","bold");pdf.setFontSize(10);setColor(C.ink);pdf.text(label,M,y);
+      pdf.setFillColor(226,220,208);pdf.roundedRect(66,y-3.2,102,4,2,2,"F");
+      pdf.setFillColor(...C.gold);pdf.roundedRect(66,y-3.2,Math.max(2,102*Math.round(value)/100),4,2,2,"F");
+      pdf.setFontSize(10);setColor(C.gold);pdf.text(Math.round(value)+"/100",W-M,y,{align:"right"});
+    };
 
-  // Page 5
-  pdf.addPage();
-  y=title("VOS 3 RECOMMANDATIONS PRIORITAIRES",22);
-  recommendations.forEach((r,i)=>{y=para(`${i+1}. ${r}`,y);});
-  addFooter(5);
+    let y=newPage("Diagnostic du Temps","Votre synthèse HourTime","Une lecture claire de votre rapport au temps et de vos priorités d'action.");
+    pdf.setFillColor(...C.ink);pdf.roundedRect(M,y,W-M*2,58,5,5,"F");
+    pdf.setFont("times","bold");pdf.setFontSize(42);setColor(C.goldLight);pdf.text(String(Math.round(result.index)),M+13,y+28);
+    pdf.setFont("helvetica","normal");pdf.setFontSize(12);pdf.text("/100",M+37,y+28);
+    pdf.setFont("helvetica","bold");pdf.setFontSize(18);pdf.text(result.level.label,M+70,y+20);
+    pdf.setFontSize(11);setColor([242,238,229]);pdf.text(lines(profileCopy.label,95,11),M+70,y+31);
+    y+=69;
+    card(M,y,W-M*2,52,"Votre lecture",result.level.label,HOURTIME.levelCopy(result.level.label),{bodySize:10,leading:4.8});
+    y+=61;
+    card(M,y,(W-M*2-7)/2,39,"Profil principal",profileCopy.label,profileCopy.strength,{bodySize:8.5,bodyY:23});
+    card(M+(W-M*2-7)/2+7,y,(W-M*2-7)/2,39,"Priorité",HOURTIME.MECHANISM_LABELS[result.primaryMechanism],HOURTIME.MECHANISM_ACTIONS[result.primaryMechanism],{bodySize:8.5,bodyY:23});
 
-  // Page 6
-  pdf.addPage();
-  y=title("VOTRE PLAN D'ACTION — 7 JOURS",22);
-  plan.forEach(step=>{y=para(`Jour ${step.day} — ${step.title} (${step.duration})`,y,11);y=para(step.text,y);});
-  addFooter(6);
+    y=newPage("Les 4 mécanismes","Votre manière de vivre le temps","Les scores mettent en évidence vos appuis et le mécanisme à renforcer en priorité.");
+    Object.entries(result.mechanisms).forEach(([k,v],i)=>bar(HOURTIME.MECHANISM_LABELS[k],v,y+i*14));
+    let radarData=null;
+    const radarCanvas=document.getElementById("mechanismRadar");
+    if(radarCanvas&&radarCanvas.width&&radarCanvas.height)radarData=radarCanvas.toDataURL("image/png");
+    if(radarData)pdf.addImage(radarData,"PNG",38,y+53,134,92,undefined,"FAST");
+    card(M,220,W-M*2,42,"Mécanisme prioritaire",HOURTIME.MECHANISM_LABELS[result.primaryMechanism],HOURTIME.MECHANISM_ACTIONS[result.primaryMechanism],{bodySize:9,bodyY:23});
 
-  // Page 7
-  pdf.addPage();
-  y=title("ET MAINTENANT ?",22);
-  y=para("Étape 1 — Gratuit",y,12);
-  pdf.setTextColor(20,90,160);pdf.setFontSize(11);
-  pdf.textWithLink("Découvrir les 4 mécanismes HourTime Light",margin,y,{url:HOURTIME.MECHANISMS_LIGHT_URL});
-  y+=10;
-  pdf.setTextColor(50,50,50);
-  y=para("Étape 2 — Approfondir",y,12);
-  pdf.setTextColor(20,90,160);pdf.setFontSize(11);
-  pdf.textWithLink("Découvrir les 24 Rouages HourTime",margin,y,{url:HOURTIME.ROUAGES_PREMIUM_URL});
-  y+=14;
-  pdf.setTextColor(50,50,50);
-  y=para("HourTime — Pilotez votre temps au lieu de subir vos journées.",y,12);
-  addFooter(7);
+    y=newPage("Votre profil temporel",profileCopy.label,"Votre profil décrit une tendance actuelle : il peut évoluer avec vos choix et vos habitudes.");
+    card(M,y,W-M*2,47,"Portrait",profileCopy.label,profileCopy.description,{bodySize:10,leading:4.8});
+    y+=56;
+    const cw=(W-M*2-7)/2;
+    card(M,y,cw,49,"Votre force","Votre point d'appui",profileCopy.strength,{bodySize:9,bodyY:24});
+    card(M+cw+7,y,cw,49,"Votre risque","Votre point de vigilance",profileCopy.risk,{bodySize:9,bodyY:24,accent:C.ruby});
+    y+=58;
+    card(M,y,cw,49,"Votre levier","Votre prochain mouvement",profileCopy.lever,{bodySize:9,bodyY:24});
+    if(secondary)card(M+cw+7,y,cw,49,"Tendance secondaire",secondary.label,secondary.description,{bodySize:8.5,bodyY:24});
+    y+=60;
+    pdf.setFont("times","bold");pdf.setFontSize(16);setColor(C.ink);pdf.text("Vos 3 principaux voleurs de temps",M,y);
+    result.topThieves.forEach((t,i)=>card(M+i*((W-M*2-10)/3+5),y+8,(W-M*2-10)/3,43,"#"+(i+1),t.label,Math.round(t.score)+"/100",{titleSize:10.5,bodySize:12,bodyY:33,accent:C.ruby}));
 
-  pdf.save("Diagnostic-du-Temps-HourTime.pdf");
+    y=newPage("Les rouages HourTime","Les 3 rouages à travailler","Trois points d'appui concrets sélectionnés à partir de votre diagnostic.");
+    wheels.forEach((w,i)=>{card(M,y+i*61,W-M*2,51,"Priorité "+(i+1),w.id+" - "+w.title,w.reason,{bodySize:9.5,bodyY:25,leading:4.6});});
+
+    y=newPage("Vos priorités","3 recommandations personnalisées","Commencez petit : choisissez une recommandation et transformez-la en action visible.");
+    recommendations.forEach((r,i)=>{
+      pdf.setFillColor(...C.gold);pdf.circle(M+10,y+i*58+15,8,"F");pdf.setFont("helvetica","bold");pdf.setFontSize(13);setColor([255,255,255]);pdf.text(String(i+1),M+10,y+i*58+19,{align:"center"});
+      card(M+23,y+i*58,W-M*2-23,47,"Priorité "+(i+1),"Action recommandée",r,{bodySize:10,bodyY:24,leading:4.8});
+    });
+    card(M,230,W-M*2,32,"Conseil HourTime","Une action tenue vaut mieux que trois intentions parfaites.","Planifiez dès maintenant le premier créneau dans votre agenda.",{bodySize:9,bodyY:23});
+
+    y=newPage("Votre plan d'action","7 jours pour reprendre la main","Un parcours progressif : observer, choisir, protéger, simplifier et consolider.");
+    plan.forEach((step,i)=>{
+      const rowY=y+i*27;
+      pdf.setFillColor(...(i===3||i===4?C.soft:[247,244,237]));pdf.setDrawColor(225,215,196);pdf.roundedRect(M,rowY,W-M*2,23,3,3,"FD");
+      pdf.setFont("helvetica","bold");pdf.setFontSize(8);setColor(C.gold);pdf.text("JOUR "+step.day,M+5,rowY+7);
+      pdf.setFontSize(11);setColor(C.ink);pdf.text(step.title,M+5,rowY+14);
+      pdf.setFont("helvetica","normal");pdf.setFontSize(8.3);setColor(C.muted);pdf.text(lines(step.text,96,8.3),M+50,rowY+7);
+      pdf.setFont("helvetica","bold");pdf.setFontSize(8);setColor(C.gold);pdf.text(step.duration,W-M-5,rowY+7,{align:"right"});
+      pdf.setDrawColor(...C.gold);pdf.rect(W-M-10,rowY+12,5,5);
+    });
+
+    y=newPage("Pour aller plus loin","Passez du diagnostic à l'action","Choisissez la ressource qui correspond à votre prochaine étape.");
+    card(M,y,W-M*2,63,"Étape 1 - Gratuit","Les 4 mécanismes HourTime - Version Light","Comprendre, Organiser, Protéger, Agir et mieux vivre son temps. Une vue d'ensemble claire des fondamentaux HourTime.",{bodySize:10,bodyY:27,leading:4.8});
+    pdf.setFont("helvetica","bold");pdf.setFontSize(10);setColor(C.gold);pdf.textWithLink("Ouvrir les 4 mécanismes",M+5,y+54,{url:new URL(HOURTIME.MECHANISMS_LIGHT_URL,window.location.href).href});
+    y+=74;
+    card(M,y,W-M*2,63,"Étape 2 - Premium","Les 24 rouages HourTime","Passez du diagnostic à la transformation avec 24 leviers concrets pour construire une maîtrise durable de votre temps.",{bodySize:10,bodyY:27,leading:4.8});
+    pdf.setFont("helvetica","bold");pdf.setFontSize(10);setColor(C.gold);pdf.textWithLink("Découvrir les 24 rouages",M+5,y+54,{url:HOURTIME.ROUAGES_PREMIUM_URL});
+    y+=78;
+    card(M,y,W-M*2,35,"Votre cap","Pilotez votre temps au lieu de subir vos journées.","Maîtriser son temps, c'est choisir sa vie.",{bodySize:10,bodyY:25});
+
+    const blob=pdf.output("blob");
+    const blobUrl=URL.createObjectURL(blob);
+    if(preview){
+      preview.location.replace(blobUrl);
+      setTimeout(()=>URL.revokeObjectURL(blobUrl),120000);
+    }else if(isMobile){
+      window.location.assign(blobUrl);
+      setTimeout(()=>URL.revokeObjectURL(blobUrl),120000);
+    }else{
+      const link=document.createElement("a");
+      link.href=blobUrl;link.download="Diagnostic-du-Temps-HourTime.pdf";
+      document.body.appendChild(link);link.click();link.remove();
+      setTimeout(()=>URL.revokeObjectURL(blobUrl),30000);
+    }
+  }catch(error){
+    if(preview)preview.close();
+    console.error("Échec de génération du rapport PDF",error);
+    alert("Le rapport PDF n'a pas pu être généré. Vous pouvez utiliser le bouton Imprimer puis choisir « Enregistrer en PDF ».");
+    throw error;
+  }
 };
-
