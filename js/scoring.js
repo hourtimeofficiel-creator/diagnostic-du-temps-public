@@ -6,18 +6,18 @@ HOURTIME.clamp=n=>Math.max(0,Math.min(100,Number.isFinite(n)?n:0));
 HOURTIME.calculateMechanismScore=function(mechanism,answers){const qs=HOURTIME.QUESTIONS.filter(q=>q.mechanism===mechanism&&q.scored);let weighted=0,weights=0,valid=0;qs.forEach(q=>{const a=answers[q.id];if(a===null||a===undefined)return;const s=HOURTIME.normalize(a);weighted+=s*q.weight;weights+=q.weight;valid++});return valid>=5&&weights>0?weighted/weights:null};
 HOURTIME.weightedRisk=function(answers,pairs){let sum=0,weight=0,maxDeficit=0;for(const[qid,w]of pairs){const a=answers[qid];if(a===null||a===undefined)continue;const d=HOURTIME.deficit(a);sum+=d*w;weight+=w;maxDeficit=Math.max(maxDeficit,d)}return{score:weight>0?HOURTIME.clamp(sum/weight):null,maxDeficit}};
 HOURTIME.calculateThieves=function(answers,mechanisms){const defs=[
-{id:"notifications",label:"Notifications et téléphone",mechanism:"proteger",pairs:[[15,.55],[16,.20],[18,.25]]},
-{id:"reseaux",label:"Réseaux sociaux et contenus numériques",mechanism:"proteger",pairs:[[18,.70],[15,.20],[28,.10]]},
-{id:"interruptions",label:"Interruptions",mechanism:"proteger",pairs:[[16,.55],[21,.25],[15,.20]]},
-{id:"urgences",label:"Urgences et imprévus",mechanism:"organiser",pairs:[[4,.35],[11,.30],[26,.20],[8,.15]]},
-{id:"priorites",label:"Manque de priorités",mechanism:"organiser",pairs:[[8,.40],[14,.30],[4,.15],[28,.15]]},
-{id:"surcharge",label:"Agenda trop chargé",mechanism:"organiser",pairs:[[11,.45],[9,.20],[19,.20],[27,.15]]},
-{id:"dispersion",label:"Dispersion / trop de choses à la fois",mechanism:"agir",pairs:[[23,.45],[16,.20],[12,.15],[26,.20]]},
-{id:"procrastination",label:"Procrastination",mechanism:"agir",pairs:[[22,.65],[26,.20],[28,.15]]},
-{id:"perfectionnisme",label:"Perfectionnisme",mechanism:"agir",pairs:[[24,.70],[23,.15],[26,.15]]},
-{id:"autres",label:"Temps donné aux autres",mechanism:"proteger",pairs:[[17,.25],[19,.25],[20,.35],[21,.15]]},
-{id:"manque-recul",label:"Manque de recul",mechanism:"comprendre",pairs:[[5,.40],[1,.20],[6,.20],[7,.20]]},
-{id:"energie",label:"Manque de récupération / énergie",mechanism:"agir",pairs:[[27,.60],[3,.20],[19,.20]]}
+{id:"notifications",label:"Notifications et téléphone",mechanism:"proteger",pairs:[[15,.50],[17,.30],[21,.20]]},
+{id:"reseaux",label:"Réseaux sociaux et contenus numériques",mechanism:"proteger",pairs:[[6,.45],[15,.30],[17,.25]]},
+{id:"interruptions",label:"Interruptions",mechanism:"proteger",pairs:[[15,.50],[16,.30],[21,.20]]},
+{id:"urgences",label:"Urgences et imprévus",mechanism:"organiser",pairs:[[4,.40],[10,.30],[13,.30]]},
+{id:"priorites",label:"Manque de priorités",mechanism:"organiser",pairs:[[4,.30],[5,.30],[9,.25],[27,.15]]},
+{id:"surcharge",label:"Agenda trop chargé",mechanism:"organiser",pairs:[[10,.35],[11,.25],[13,.25],[18,.15]]},
+{id:"dispersion",label:"Dispersion / trop de choses à la fois",mechanism:"agir",pairs:[[2,.40],[21,.35],[25,.25]]},
+{id:"procrastination",label:"Procrastination",mechanism:"agir",pairs:[[12,.40],[22,.40],[25,.20]]},
+{id:"perfectionnisme",label:"Perfectionnisme",mechanism:"agir",pairs:[[14,.55],[26,.45]]},
+{id:"autres",label:"Temps donné aux autres",mechanism:"proteger",pairs:[[11,.25],[16,.25],[19,.25],[20,.25]]},
+{id:"manque-recul",label:"Manque de recul",mechanism:"comprendre",pairs:[[1,.45],[6,.30],[7,.25]]},
+{id:"energie",label:"Manque de récupération / énergie",mechanism:"agir",pairs:[[3,.35],[18,.40],[19,.15],[24,.10]]}
 ];const thieves=defs.map(def=>{const r=HOURTIME.weightedRisk(answers,def.pairs);return{...def,score:r.score,maxDeficit:r.maxDeficit}});const weakest=Object.entries(mechanisms).filter(([,v])=>v!=null).sort((a,b)=>a[1]-b[1])[0]?.[0];thieves.sort((a,b)=>{if(b.score!==a.score)return b.score-a.score;if(b.maxDeficit!==a.maxDeficit)return b.maxDeficit-a.maxDeficit;if(a.mechanism===weakest&&b.mechanism!==weakest)return-1;if(b.mechanism===weakest&&a.mechanism!==weakest)return 1;return a.label.localeCompare(b.label,"fr")});return thieves};
 HOURTIME.getLevel=score=>HOURTIME.CONFIG.levels.find(x=>score>=x.min&&score<=x.max)||HOURTIME.CONFIG.levels[0];
 HOURTIME.getRiskLevel=score=>HOURTIME.CONFIG.riskLevels.find(x=>score>=x.min&&score<=x.max)||HOURTIME.CONFIG.riskLevels[0];
