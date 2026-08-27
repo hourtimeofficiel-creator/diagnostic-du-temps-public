@@ -7,6 +7,8 @@ q = (root / 'js/questions.js').read_text(encoding='utf-8')
 ids = [int(x) for x in re.findall(r'\{id:(\d+)', q)]
 assert len(ids) == 28, f'Expected 28 questions, got {len(ids)}'
 assert ids == list(range(1, 29)), 'Question IDs must be 1..28'
+assert 'HOURTIME.QUESTIONS.length !== 28' in q, 'Missing runtime question-count guard'
+assert 'question.options.length !== 5' in q, 'Missing runtime five-options guard'
 
 required = [
     'index.html', 'css/style.css', 'js/questions.js', 'js/scoring.js',
