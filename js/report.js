@@ -15,8 +15,8 @@ HOURTIME.renderMechanismRadar=function(canvas,mechanisms){
   const data=["comprendre","organiser","proteger","agir"].map(k=>Math.round(mechanisms[k]||0));
   HOURTIME._radarChart=new Chart(canvas.getContext("2d"),{
     type:"radar",
-    data:{labels:["Comprendre","Organiser","Protéger","Agir & mieux vivre"],datasets:[{label:"Score",data,fill:true,backgroundColor:"rgba(223,196,140,0.18)",borderColor:"rgba(223,196,140,0.95)",borderWidth:2,pointBackgroundColor:"rgba(223,196,140,1)",pointRadius:3}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{r:{min:0,max:100,ticks:{stepSize:20,color:"#B9B7B2",showLabelBackdrop:false},angleLines:{color:"rgba(200,169,107,.25)"},grid:{color:"rgba(200,169,107,.20)"},pointLabels:{color:"#F4EFE6",font:{size:12}}}}}
+    data:{labels:["Comprendre","Organiser","Protéger",["Agir & mieux","vivre"]],datasets:[{label:"Score",data,fill:true,backgroundColor:"rgba(223,196,140,0.18)",borderColor:"rgba(223,196,140,0.95)",borderWidth:2,pointBackgroundColor:"rgba(223,196,140,1)",pointRadius:3}]},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:12,right:48,bottom:12,left:48}},plugins:{legend:{display:false}},scales:{r:{min:0,max:100,ticks:{stepSize:20,color:"#B9B7B2",showLabelBackdrop:false},angleLines:{color:"rgba(200,169,107,.25)"},grid:{color:"rgba(200,169,107,.20)"},pointLabels:{color:"#F4EFE6",padding:7,font:{size:11,lineHeight:1.15}}}}}
   });
 };
 
@@ -170,7 +170,14 @@ HOURTIME.downloadPdf=async function(reportNode){
     const blob=pdf.output("blob");
     const blobUrl=URL.createObjectURL(blob);
     if(preview){
-      preview.location.replace(blobUrl);
+      /* iOS/Safari peut ignorer une navigation directe d'un onglet provisoire
+         vers un blob. L'intégration dans l'onglet déjà ouvert est plus fiable. */
+      preview.document.open();
+      preview.document.write("<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'><title>Rapport HourTime</title><style>html,body,iframe{width:100%;height:100%;margin:0;border:0;background:#252525}a{position:fixed;z-index:2;right:12px;top:12px;padding:10px 14px;border-radius:8px;background:#c8a96b;color:#111;text-decoration:none;font:600 14px system-ui}</style></head><body><a id='savePdf'>Télécharger</a><iframe id='pdfPreview' title='Rapport PDF HourTime'></iframe></body></html>");
+      preview.document.close();
+      preview.document.getElementById("savePdf").href=blobUrl;
+      preview.document.getElementById("savePdf").download="Diagnostic-du-Temps-HourTime.pdf";
+      preview.document.getElementById("pdfPreview").src=blobUrl;
       setTimeout(()=>URL.revokeObjectURL(blobUrl),120000);
     }else if(isMobile){
       window.location.assign(blobUrl);
