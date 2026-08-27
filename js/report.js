@@ -50,18 +50,12 @@ HOURTIME.renderReport=function(container,answers,result,profile){
 
 HOURTIME.downloadPdf=async function(reportNode){
   const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||window.matchMedia("(max-width: 800px)").matches;
-  const preview=isMobile?window.open("","_blank"):null;
-  if(preview){
-    preview.document.write("<title>Préparation du rapport HourTime</title><body style='margin:0;background:#0e0e0f;color:#f4efe6;font-family:system-ui;display:grid;place-items:center;min-height:100vh'><p>Préparation de votre rapport PDF…</p></body>");
-  }
   if(!window.jspdf){
-    if(preview)preview.close();
     window.print();
     return;
   }
   const payload=HOURTIME._lastPayload;
   if(!payload){
-    if(preview)preview.close();
     window.print();
     return;
   }
@@ -191,31 +185,30 @@ HOURTIME.downloadPdf=async function(reportNode){
     y+=78;
     card(M,y,W-M*2,35,"Votre cap","Pilotez votre temps au lieu de subir vos journées.","Maîtriser son temps, c'est choisir sa vie.",{bodySize:10,bodyY:25});
 
+    const filename="Diagnostic-du-Temps-HourTime.pdf";
     const blob=pdf.output("blob");
-    const blobUrl=URL.createObjectURL(blob);
-    if(preview){
-      /* Une URL base64 reste exploitable après le téléchargement, contrairement
-         à certaines URL blob temporaires sur les navigateurs mobiles. */
-      const dataUrl=pdf.output("datauristring");
-      preview.document.open();
-      preview.document.write("<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'><title>Rapport HourTime</title><style>html,body,iframe{width:100%;height:100%;margin:0;border:0;background:#252525}.actions{position:fixed;z-index:2;right:12px;top:12px;display:flex;gap:8px}a{padding:10px 14px;border-radius:8px;background:#c8a96b;color:#111;text-decoration:none;font:700 14px Arial,sans-serif}.secondary{background:#f4efe6}</style></head><body><div class='actions'><a id='openPdf' class='secondary'>Ouvrir</a><a id='savePdf'>Télécharger</a></div><iframe id='pdfPreview' title='Rapport PDF HourTime'></iframe></body></html>");
-      preview.document.close();
-      preview.document.getElementById("openPdf").href=dataUrl;
-      preview.document.getElementById("savePdf").href=dataUrl;
-      preview.document.getElementById("savePdf").download="Diagnostic-du-Temps-HourTime.pdf";
-      preview.document.getElementById("pdfPreview").src=dataUrl;
-      URL.revokeObjectURL(blobUrl);
-    }else if(isMobile){
-      window.location.assign(blobUrl);
-      setTimeout(()=>URL.revokeObjectURL(blobUrl),120000);
+    if(isMobile){
+      const file=new File([blob],filename,{type:"application/pdf"});
+      /* Le partage natif remet un vrai fichier au téléphone : l'utilisateur
+         peut l'ouvrir avec son lecteur PDF, l'enregistrer ou le partager. */
+      if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+        try{
+          await navigator.share({files:[file],title:"Diagnostic du Temps HourTime",text:"Mon rapport HourTime"});
+        }catch(error){
+          if(error&&error.name==="AbortError")return;
+          pdf.save(filename);
+        }
+      }else{
+        pdf.save(filename);
+      }
     }else{
+      const blobUrl=URL.createObjectURL(blob);
       const link=document.createElement("a");
-      link.href=blobUrl;link.download="Diagnostic-du-Temps-HourTime.pdf";
+      link.href=blobUrl;link.download=filename;
       document.body.appendChild(link);link.click();link.remove();
       setTimeout(()=>URL.revokeObjectURL(blobUrl),30000);
     }
   }catch(error){
-    if(preview)preview.close();
     console.error("Échec de génération du rapport PDF",error);
     alert("Le rapport PDF n'a pas pu être généré. Vous pouvez utiliser le bouton Imprimer puis choisir « Enregistrer en PDF ».");
     throw error;
