@@ -111,4 +111,7 @@ HOURTIME.QUESTIONS=[
 {id:27,mechanism:"agir",pillar:"mindset",weight:1.50,scored:true,text:"Y a-t-il en ce moment une activité importante dans votre vie ou votre travail que vous continuez à faire alors qu'elle ne correspond plus vraiment à vos priorités actuelles ?",options:[{value:1,label:"Oui, plusieurs — je ne sais pas comment m'en dégager"},{value:2,label:"Oui, au moins une — je le sais mais je ne fais rien"},{value:3,label:"Peut-être, mais je n'ai pas encore tranché"},{value:4,label:"J'en ai identifié une et j'ai commencé à réduire"},{value:5,label:"Non — je révise régulièrement ce qui mérite mon temps"}]},
 {id:28,mechanism:"agir",pillar:"lifestyle",weight:1.50,scored:true,text:"Si vous récupériez une heure par jour que vous ne saviez pas que vous perdiez, qu'en feriez-vous ?",options:[{value:1,label:"Je ne sais pas, je n'y ai pas réfléchi"},{value:2,label:"Je remplirai probablement avec d'autres choses urgentes"},{value:3,label:"J'ai une idée vague mais rien de précis"},{value:4,label:"J'ai quelques projets en tête pour lesquels je manque de temps"},{value:5,label:"Je sais exactement où je l'investirais — c'est déjà réfléchi"}]}
 ];
+if (HOURTIME.QUESTIONS.length !== 28 || HOURTIME.QUESTIONS.some(question => !Array.isArray(question.options) || question.options.length !== 5)) {
+  throw new Error("Configuration invalide : le diagnostic doit contenir 28 questions avec 5 options chacune.");
+}
 HOURTIME.MECHANISM_LABELS={comprendre:"Comprendre",organiser:"Organiser",proteger:"Protéger",agir:"Agir & mieux vivre"};
