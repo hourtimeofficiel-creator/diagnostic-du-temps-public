@@ -188,7 +188,6 @@ HOURTIME.downloadPdf=async function(reportNode){
     const filename="Diagnostic-du-Temps-HourTime.pdf";
     const blob=pdf.output("blob");
     if(isMobile){
-      const file=new File([blob],filename,{type:"application/pdf"});
       const blobUrl=URL.createObjectURL(blob);
       const previous=document.getElementById("hourtimePdfActions");
       if(previous)previous.remove();
@@ -196,26 +195,12 @@ HOURTIME.downloadPdf=async function(reportNode){
       panel.id="hourtimePdfActions";
       panel.setAttribute("role","dialog");
       panel.setAttribute("aria-modal","true");
-      panel.innerHTML=`<div style="position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9998"></div><div style="position:fixed;z-index:9999;left:16px;right:16px;bottom:20px;padding:22px;border:1px solid #c8a96b;border-radius:18px;background:#171719;color:#f4efe6;box-shadow:0 20px 60px rgba(0,0,0,.55);font-family:Arial,sans-serif"><strong style="display:block;font-size:18px;margin-bottom:6px">Votre rapport PDF est prêt</strong><p style="color:#b9b7b2;line-height:1.45;margin:0 0 16px">Choisissez directement l'action souhaitée.</p><div style="display:grid;gap:10px"><a id="hourtimeOpenPdf" style="padding:14px;border-radius:11px;text-align:center;text-decoration:none;background:#f4efe6;color:#17120b;font-weight:700">Ouvrir le PDF</a><a id="hourtimeSavePdf" download="${filename}" style="padding:14px;border-radius:11px;text-align:center;text-decoration:none;background:#c8a96b;color:#17120b;font-weight:700">Enregistrer le PDF</a><button id="hourtimeSharePdf" type="button" style="display:none;padding:14px;border-radius:11px;border:1px solid #c8a96b;background:transparent;color:#f4efe6;font-weight:700">Partager</button><button id="hourtimeClosePdf" type="button" style="padding:10px;border:0;background:transparent;color:#b9b7b2">Fermer</button></div></div>`;
+      panel.innerHTML=`<div style="position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9998"></div><div style="position:fixed;z-index:9999;left:16px;right:16px;bottom:20px;padding:22px;border:1px solid #c8a96b;border-radius:18px;background:#171719;color:#f4efe6;box-shadow:0 20px 60px rgba(0,0,0,.55);font-family:Arial,sans-serif"><strong style="display:block;font-size:18px;margin-bottom:6px">Votre rapport PDF est prêt</strong><p style="color:#b9b7b2;line-height:1.45;margin:0 0 16px">Choisissez directement l'action souhaitée.</p><div style="display:grid;gap:10px"><a id="hourtimeOpenPdf" style="padding:14px;border-radius:11px;text-align:center;text-decoration:none;background:#f4efe6;color:#17120b;font-weight:700">Ouvrir le PDF</a><a id="hourtimeSavePdf" download="${filename}" style="padding:14px;border-radius:11px;text-align:center;text-decoration:none;background:#c8a96b;color:#17120b;font-weight:700">Enregistrer le PDF</a><button id="hourtimeClosePdf" type="button" style="padding:10px;border:0;background:transparent;color:#b9b7b2">Fermer</button></div></div>`;
       document.body.appendChild(panel);
       const openLink=panel.querySelector("#hourtimeOpenPdf");
       const saveLink=panel.querySelector("#hourtimeSavePdf");
       openLink.href=blobUrl;openLink.target="_blank";openLink.rel="noopener";
       saveLink.href=blobUrl;
-      const shareButton=panel.querySelector("#hourtimeSharePdf");
-      if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-        shareButton.style.display="block";
-        shareButton.addEventListener("click",()=>{
-          /* Recréer le fichier au moment du geste évite les refus observés sur
-             certains Chrome Android et WebView avec un File conservé en mémoire. */
-          const freshFile=new File([pdf.output("arraybuffer")],filename,{type:"application/pdf",lastModified:Date.now()});
-          navigator.share({files:[freshFile]}).catch(error=>{
-            if(error&&error.name==="AbortError")return;
-            console.error("Partage PDF impossible",error);
-            alert("Votre navigateur ne permet pas le partage direct de ce PDF. Ouvrez le PDF, puis utilisez l'icône Partager de votre téléphone.");
-          });
-        });
-      }
       panel.querySelector("#hourtimeClosePdf").addEventListener("click",()=>panel.remove());
     }else{
       const blobUrl=URL.createObjectURL(blob);
