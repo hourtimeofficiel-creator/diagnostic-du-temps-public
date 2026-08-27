@@ -99,6 +99,7 @@ blockquote strong{display:block;color:var(--gold2);margin-top:6px}
   .mechanism-grid,.thief-grid,.recommendation-grid,.capital-grid,.cta-grid{grid-template-columns:1fr}
   .report-hero{grid-template-columns:1fr}.score-ring{margin:auto}
   .metric-row{grid-template-columns:115px 1fr 44px;font-size:.88rem}
+  .mechanism-radar-wrap{height:350px;padding:8px}
   .site-footer{flex-direction:column}.plan-day{grid-template-columns:1fr auto;gap:10px 16px}.plan-day>div:nth-child(2){grid-column:1 / -1}.plan-day input{grid-column:2;grid-row:1}
 }
 @media(max-width:540px){
