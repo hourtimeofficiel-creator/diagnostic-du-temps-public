@@ -118,31 +118,34 @@ HOURTIME.downloadPdf=async function(reportNode){
 
     y=newPage("Les 4 mécanismes","Votre manière de vivre le temps","Les scores mettent en évidence vos appuis et le mécanisme à renforcer en priorité.");
     Object.entries(result.mechanisms).forEach(([k,v],i)=>bar(HOURTIME.MECHANISM_LABELS[k],v,y+i*14));
-    let radarData=null;
-    const radarCanvas=document.getElementById("mechanismRadar");
-    const radarChart=HOURTIME._radarChart;
-    if(radarCanvas&&radarCanvas.width&&radarCanvas.height){
-      /* Le site est sombre, mais la page PDF est ivoire : on augmente
-         temporairement le contraste du radar avant d'en faire l'image. */
-      if(radarChart){
-        const scale=radarChart.options.scales.r;
-        scale.pointLabels.color="#292621";
-        scale.ticks.color="#625d54";
-        scale.angleLines.color="rgba(122,92,39,.35)";
-        scale.grid.color="rgba(122,92,39,.25)";
-        radarChart.update("none");
-      }
-      radarData=radarCanvas.toDataURL("image/png");
-      if(radarChart){
-        const scale=radarChart.options.scales.r;
-        scale.pointLabels.color="#F4EFE6";
-        scale.ticks.color="#B9B7B2";
-        scale.angleLines.color="rgba(200,169,107,.25)";
-        scale.grid.color="rgba(200,169,107,.20)";
-        radarChart.update("none");
-      }
+    /* Radar vectoriel : rendu net dans tous les lecteurs PDF, sans étirement
+       de canvas ni déformation de la police. */
+    const radar={cx:105,cy:y+101,rx:49,ry:40};
+    pdf.setLineWidth(.25);pdf.setDrawColor(205,190,160);
+    for(let level=1;level<=5;level+=1){
+      const rx=radar.rx*level/5,ry=radar.ry*level/5;
+      pdf.lines([[rx,ry],[-rx,ry],[-rx,-ry],[rx,-ry]],radar.cx,radar.cy-ry,[1,1],"S",true);
     }
-    if(radarData)pdf.addImage(radarData,"PNG",38,y+53,134,92,undefined,"FAST");
+    pdf.setDrawColor(190,166,116);
+    pdf.line(radar.cx,radar.cy-radar.ry,radar.cx,radar.cy+radar.ry);
+    pdf.line(radar.cx-radar.rx,radar.cy,radar.cx+radar.rx,radar.cy);
+    const radarScores=[result.mechanisms.comprendre,result.mechanisms.organiser,result.mechanisms.proteger,result.mechanisms.agir].map(v=>Math.max(0,Math.min(100,Number(v)||0))/100);
+    const pts=[
+      [radar.cx,radar.cy-radar.ry*radarScores[0]],
+      [radar.cx+radar.rx*radarScores[1],radar.cy],
+      [radar.cx,radar.cy+radar.ry*radarScores[2]],
+      [radar.cx-radar.rx*radarScores[3],radar.cy]
+    ];
+    pdf.setFillColor(231,216,181);pdf.setDrawColor(...C.gold);pdf.setLineWidth(.8);
+    pdf.lines([[pts[1][0]-pts[0][0],pts[1][1]-pts[0][1]],[pts[2][0]-pts[1][0],pts[2][1]-pts[1][1]],[pts[3][0]-pts[2][0],pts[3][1]-pts[2][1]],[pts[0][0]-pts[3][0],pts[0][1]-pts[3][1]]],pts[0][0],pts[0][1],[1,1],"FD",true);
+    pts.forEach(([px,py])=>pdf.circle(px,py,1.25,"F"));
+    pdf.setFont("helvetica","bold");pdf.setFontSize(10);setColor(C.ink);
+    pdf.text("Comprendre",radar.cx,radar.cy-radar.ry-7,{align:"center"});
+    pdf.text("Organiser",radar.cx+radar.rx+7,radar.cy+2,{align:"left"});
+    pdf.text("Protéger",radar.cx,radar.cy+radar.ry+8,{align:"center"});
+    pdf.text(["Agir & mieux","vivre"],radar.cx-radar.rx-7,radar.cy-2,{align:"right"});
+    pdf.setFont("helvetica","normal");pdf.setFontSize(7);setColor(C.muted);
+    [20,40,60,80,100].forEach((value,i)=>pdf.text(String(value),radar.cx+2,radar.cy-radar.ry*(i+1)/5+2));
     card(M,220,W-M*2,42,"Mécanisme prioritaire",HOURTIME.MECHANISM_LABELS[result.primaryMechanism],HOURTIME.MECHANISM_ACTIONS[result.primaryMechanism],{bodySize:9,bodyY:23});
 
     y=newPage("Votre profil temporel",profileCopy.label,"Votre profil décrit une tendance actuelle : il peut évoluer avec vos choix et vos habitudes.");
