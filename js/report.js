@@ -205,9 +205,15 @@ HOURTIME.downloadPdf=async function(reportNode){
       const shareButton=panel.querySelector("#hourtimeSharePdf");
       if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
         shareButton.style.display="block";
-        shareButton.addEventListener("click",async()=>{
-          try{await navigator.share({files:[file],title:"Diagnostic du Temps HourTime"});}
-          catch(error){if(!error||error.name!=="AbortError")console.error("Partage PDF impossible",error);}
+        shareButton.addEventListener("click",()=>{
+          /* Recréer le fichier au moment du geste évite les refus observés sur
+             certains Chrome Android et WebView avec un File conservé en mémoire. */
+          const freshFile=new File([pdf.output("arraybuffer")],filename,{type:"application/pdf",lastModified:Date.now()});
+          navigator.share({files:[freshFile]}).catch(error=>{
+            if(error&&error.name==="AbortError")return;
+            console.error("Partage PDF impossible",error);
+            alert("Votre navigateur ne permet pas le partage direct de ce PDF. Ouvrez le PDF, puis utilisez l'icône Partager de votre téléphone.");
+          });
         });
       }
       panel.querySelector("#hourtimeClosePdf").addEventListener("click",()=>panel.remove());
